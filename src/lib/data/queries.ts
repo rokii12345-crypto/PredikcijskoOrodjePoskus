@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { execute, queryAll, queryOne } from "@/lib/db";
+import { batch, execute, queryAll, queryOne, type QueryArgs } from "@/lib/db";
 import { scheduleTasks } from "@/lib/scheduling/scheduleTasks";
 import { generatePaymentEvents } from "@/lib/costs/generatePaymentEvents";
 import paymentRulesData from "@/data/templates/paymentRules.si.json";
@@ -160,23 +160,25 @@ export async function createProject(input: {
 }): Promise<string> {
   const projectId = randomUUID();
 
-  await execute(
-    `insert into projects (id, owner_user_id, name, project_type, start_date, scheduling_mode, currency, contingency_percent)
-     values (:id, :ownerUserId, :name, 'house_new_build', :startDate, 'forward', 'EUR', :contingencyPercent)`,
+  const statements: Array<{ sql: string; args: QueryArgs }> = [
     {
-      id: projectId,
-      ownerUserId: input.ownerUserId,
-      name: input.name,
-      startDate: input.startDate,
-      contingencyPercent: input.contingencyPercent
+      sql: `insert into projects (id, owner_user_id, name, project_type, start_date, scheduling_mode, currency, contingency_percent)
+       values (:id, :ownerUserId, :name, 'house_new_build', :startDate, 'forward', 'EUR', :contingencyPercent)`,
+      args: {
+        id: projectId,
+        ownerUserId: input.ownerUserId,
+        name: input.name,
+        startDate: input.startDate,
+        contingencyPercent: input.contingencyPercent
+      }
     }
-  );
+  ];
 
   for (const investor of input.investors) {
-    await execute(
-      `insert into investors (id, project_id, name, share_percent, email, note)
+    statements.push({
+      sql: `insert into investors (id, project_id, name, share_percent, email, note)
        values (:id, :projectId, :name, :sharePercent, :email, :note)`,
-      {
+      args: {
         id: randomUUID(),
         projectId,
         name: investor.name,
@@ -184,14 +186,14 @@ export async function createProject(input: {
         email: investor.email ?? null,
         note: investor.note ?? null
       }
-    );
+    });
   }
 
   for (const source of input.fundingSources) {
-    await execute(
-      `insert into funding_sources (id, project_id, name, type, available_amount, available_from, note)
+    statements.push({
+      sql: `insert into funding_sources (id, project_id, name, type, available_amount, available_from, note)
        values (:id, :projectId, :name, :type, :availableAmount, :availableFrom, :note)`,
-      {
+      args: {
         id: randomUUID(),
         projectId,
         name: source.name,
@@ -200,14 +202,14 @@ export async function createProject(input: {
         availableFrom: source.availableFrom,
         note: source.note ?? null
       }
-    );
+    });
   }
 
   for (const task of input.tasks) {
-    await execute(
-      `insert into tasks (id, project_id, parent_code, code, name, type, duration_days, dependencies, progress_percent, status, default_funding_source_type, sort_order, optional_key, included)
+    statements.push({
+      sql: `insert into tasks (id, project_id, parent_code, code, name, type, duration_days, dependencies, progress_percent, status, default_funding_source_type, sort_order, optional_key, included)
        values (:id, :projectId, :parentCode, :code, :name, :type, :durationDays, :dependencies, :progressPercent, :status, :defaultFundingSourceType, :sortOrder, :optionalKey, :included)`,
-      {
+      args: {
         id: randomUUID(),
         projectId,
         parentCode: task.parentCode ?? null,
@@ -223,14 +225,14 @@ export async function createProject(input: {
         optionalKey: task.optionalKey ?? null,
         included: task.included === false ? 0 : 1
       }
-    );
+    });
   }
 
   for (const item of input.costItems) {
-    await execute(
-      `insert into cost_items (id, project_id, task_code, name, status, estimated_amount, amount_includes_vat, default_funding_source_type, payment_rule_code)
+    statements.push({
+      sql: `insert into cost_items (id, project_id, task_code, name, status, estimated_amount, amount_includes_vat, default_funding_source_type, payment_rule_code)
        values (:id, :projectId, :taskCode, :name, :status, :estimatedAmount, :amountIncludesVat, :defaultFundingSourceType, :paymentRuleCode)`,
-      {
+      args: {
         id: randomUUID(),
         projectId,
         taskCode: item.taskCode,
@@ -241,9 +243,10 @@ export async function createProject(input: {
         defaultFundingSourceType: item.defaultFundingSourceType ?? null,
         paymentRuleCode: item.paymentRuleCode
       }
-    );
+    });
   }
 
+  await batch(statements);
   await recalculateProject(projectId);
 
   return projectId;
@@ -410,25 +413,22 @@ export async function recalculateProject(projectId: string) {
   const tasks = taskRows.map(rowToTask);
   const scheduledTasks = scheduleTasks(project.startDate, tasks);
 
-  for (const task of scheduledTasks) {
-    await execute("update tasks set start_date = :startDate, end_date = :endDate where id = :id", {
-      startDate: task.startDate ?? null,
-      endDate: task.endDate ?? null,
-      id: task.id
-    });
-  }
-
   const costItemRows = await queryAll<CostItemRow>(COST_ITEM_SELECT, { projectId });
   const costItems = costItemRows.map(rowToCostItem);
   const paymentEvents = generatePaymentEvents(costItems, scheduledTasks, paymentRules);
 
-  await execute("delete from payment_events where project_id = :projectId", { projectId });
+  const statements: Array<{ sql: string; args: QueryArgs }> = scheduledTasks.map((task) => ({
+    sql: "update tasks set start_date = :startDate, end_date = :endDate where id = :id",
+    args: { startDate: task.startDate ?? null, endDate: task.endDate ?? null, id: task.id }
+  }));
+
+  statements.push({ sql: "delete from payment_events where project_id = :projectId", args: { projectId } });
 
   for (const event of paymentEvents) {
-    await execute(
-      `insert into payment_events (id, project_id, cost_item_id, task_code, name, planned_date, planned_amount, funding_source_type, status)
+    statements.push({
+      sql: `insert into payment_events (id, project_id, cost_item_id, task_code, name, planned_date, planned_amount, funding_source_type, status)
        values (:id, :projectId, :costItemId, :taskCode, :name, :plannedDate, :plannedAmount, :fundingSourceType, :status)`,
-      {
+      args: {
         id: event.id,
         projectId: event.projectId,
         costItemId: event.costItemId,
@@ -439,6 +439,8 @@ export async function recalculateProject(projectId: string) {
         fundingSourceType: event.fundingSourceType ?? null,
         status: event.status
       }
-    );
+    });
   }
+
+  await batch(statements);
 }

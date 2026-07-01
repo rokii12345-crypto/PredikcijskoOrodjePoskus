@@ -185,3 +185,19 @@ export async function execute(sql: string, args?: QueryArgs) {
   await dbReady;
   return withRetry(() => db.execute({ sql, args: args ?? [] }));
 }
+
+/**
+ * Runs many statements as a single round trip in one transaction. Against a
+ * local file: database the difference is negligible, but against a
+ * network-hosted Turso database, doing dozens of individual `execute` calls
+ * in a loop (e.g. inserting every task of a new project) adds up to
+ * seconds of round-trip latency. Prefer this whenever writing more than a
+ * handful of rows at once.
+ */
+export async function batch(statements: Array<{ sql: string; args?: QueryArgs }>) {
+  if (statements.length === 0) return [];
+  await dbReady;
+  return withRetry(() =>
+    db.batch(statements.map((statement) => ({ sql: statement.sql, args: statement.args ?? [] })))
+  );
+}
