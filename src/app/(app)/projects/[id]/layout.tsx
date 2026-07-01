@@ -14,11 +14,11 @@ export default async function ProjectLayout({
   const { id } = await params;
   const user = await requireUser();
 
-  if (!hasProjectAccess(user.id, id)) {
+  if (!(await hasProjectAccess(user.id, id))) {
     notFound();
   }
 
-  const project = getProject(id);
+  const project = await getProject(id);
 
   if (!project) {
     notFound();

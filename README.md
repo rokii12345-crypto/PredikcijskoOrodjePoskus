@@ -18,13 +18,16 @@ v [`DEPLOYMENT.md`](./DEPLOYMENT.md).
 
 - Next.js 16 (App Router, Server Actions, Turbopack)
 - TypeScript, React 19
-- Vgrajen `node:sqlite` (Node.js 22.5+) — brez zunanje baze ali native odvisnosti
+- SQLite prek `@libsql/client` — lokalna datoteka za razvoj, [Turso](https://turso.tech) (gostovan
+  SQLite) za produkcijo na Vercelu
 - Lastna e-pošta/geslo prijava (scrypt hash, podpisan session cookie)
 - Recharts za grafe denarnega toka
 - Tailwind CSS
 
-Aplikacija ne potrebuje nobenega zunanjega računa (Supabase, Vercel ...), da jo zaženeš in
-preizkusiš — edina potrebna nastavitev je skrivnost za podpisovanje sej (`AUTH_SECRET`).
+Za lokalni razvoj aplikacija ne potrebuje nobenega zunanjega računa — edina obvezna nastavitev je
+skrivnost za podpisovanje sej (`AUTH_SECRET`). Za javno postavitev na Vercelu (ker ta nima
+trajnega diska) je dodatno potreben brezplačen Turso račun — glej
+[`DEPLOYMENT.md`](./DEPLOYMENT.md).
 
 ## Lokalni zagon
 
@@ -41,7 +44,8 @@ preizkusiš — edina potrebna nastavitev je skrivnost za podpisovanje sej (`AUT
    node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
    ```
 
-   Izpis prilepi kot vrednost `AUTH_SECRET` v `.env.local`.
+   Izpis prilepi kot vrednost `AUTH_SECRET` v `.env.local`. `DATABASE_URL`/`DATABASE_AUTH_TOKEN`
+   pusti prazna — potrebna sta samo za Vercel (glej `DEPLOYMENT.md`).
 
    **`.env.local` nikoli ne sme iti na GitHub.**
 
@@ -64,11 +68,12 @@ preizkusiš — edina potrebna nastavitev je skrivnost za podpisovanje sej (`AUT
 - `src/lib/costs` — `generatePaymentEvents`, `calculateCashflow`, `validateProject`.
 - `src/lib/demo` — `createDemoProject`, iz katerega čarovnik za nov projekt ustvari začetne
   podatke.
-- `src/lib/db` — inicializacija SQLite sheme (`node:sqlite`).
+- `src/lib/db` — `@libsql/client` povezava in inicializacija sheme; `DATABASE_URL` odloči, ali gre
+  za lokalno datoteko ali gostovano Turso bazo.
 - `src/lib/auth` — hashiranje gesel (`scrypt`), podpisovanje/preverjanje session cookieja
   (`AUTH_SECRET`), `getCurrentUser`/`requireUser` za strani in server actions.
-- `src/lib/data/queries.ts` — vse poizvedbe nad SQLite bazo, `hasProjectAccess` (avtorizacija na
-  ravni aplikacije namesto Supabase RLS) in `recalculateProject`, ki po vsaki spremembi ponovno
+- `src/lib/data/queries.ts` — vse (asinhrone) poizvedbe nad bazo, `hasProjectAccess` (avtorizacija
+  na ravni aplikacije namesto Supabase RLS) in `recalculateProject`, ki po vsaki spremembi ponovno
   izračuna terminski plan in plačilne dogodke.
 - `src/app/(app)` — zaščitene strani po prijavi: Moji projekti, čarovnik za nov projekt, Dashboard,
   Terminski plan, Stroški, Plačilni plan, Viri financiranja, Investitorji.
@@ -83,16 +88,15 @@ preizkusiš — edina potrebna nastavitev je skrivnost za podpisovanje sej (`AUT
   ponarediti brez `AUTH_SECRET`.
 - Avtorizacija: vsaka poizvedba, ki dostopa do projekta, preveri lastništvo/članstvo
   (`hasProjectAccess` v `src/lib/data/queries.ts`), preden vrne ali spremeni podatke.
-- `AUTH_SECRET` je v `.env.local`, ki ni v Gitu; `data/` (SQLite baza z uporabniškimi podatki) je
+- `AUTH_SECRET` in `DATABASE_AUTH_TOKEN` sta v `.env.local`, ki ni v Gitu; lokalna baza `data/` je
   prav tako izključena iz Gita.
 - Kredit je v tej verziji poenostavljen vir financiranja (znesek, datum razpoložljivosti), ne
   bančni kalkulator obresti in anuitet.
 
-## Objava na GitHub in gostovanje
+## Objava na GitHub in Vercel
 
-Podrobna navodila za GitHub in samostojno gostovanje (Docker/VPS/Railway/Fly.io) so v
-[`DEPLOYMENT.md`](./DEPLOYMENT.md), vključno z razlogom, zakaj Vercel serverless ni primeren za
-SQLite, in kako aplikacijo kasneje preseliti na Postgres, če boš to potreboval.
+Podrobna navodila (GitHub push, ustvarjanje Turso baze, Vercel environment variables) so v
+[`DEPLOYMENT.md`](./DEPLOYMENT.md).
 
 Ciljni GitHub repozitorij:
 
@@ -100,8 +104,10 @@ Ciljni GitHub repozitorij:
 https://github.com/rokii12345-crypto/PredikcijskoOrodjePoskus.git
 ```
 
-Okoljska spremenljivka, ki jo je treba nastaviti na produkcijskem strežniku:
+Okoljske spremenljivke, ki jih je treba nastaviti na Vercelu:
 
 ```env
 AUTH_SECRET=...
+DATABASE_URL=libsql://...
+DATABASE_AUTH_TOKEN=...
 ```

@@ -15,11 +15,11 @@ export async function upsertFundingSource(formData: FormData) {
   const user = await requireUser();
   const projectId = String(formData.get("projectId") ?? "");
 
-  if (!hasProjectAccess(user.id, projectId)) return;
+  if (!(await hasProjectAccess(user.id, projectId))) return;
 
   const fundingSourceId = String(formData.get("fundingSourceId") ?? "") || null;
 
-  upsertFundingSourceRecord(projectId, fundingSourceId, {
+  await upsertFundingSourceRecord(projectId, fundingSourceId, {
     name: String(formData.get("name") ?? ""),
     type: String(formData.get("type") ?? "own_funds") as FundingSourceType,
     availableAmount: Number(formData.get("availableAmount") ?? 0),
@@ -34,10 +34,10 @@ export async function deleteFundingSource(formData: FormData) {
   const user = await requireUser();
   const projectId = String(formData.get("projectId") ?? "");
 
-  if (!hasProjectAccess(user.id, projectId)) return;
+  if (!(await hasProjectAccess(user.id, projectId))) return;
 
   const fundingSourceId = String(formData.get("fundingSourceId") ?? "");
-  deleteFundingSourceRecord(projectId, fundingSourceId);
+  await deleteFundingSourceRecord(projectId, fundingSourceId);
 
   afterChange(projectId);
 }

@@ -1,4 +1,4 @@
-import { DatabaseSync } from "node:sqlite";
+import { createClient, type Client, type InArgs } from "@libsql/client";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -108,57 +108,80 @@ create table if not exists payment_events (
 );
 `;
 
-function sleepSync(ms: number) {
-  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
-}
-
 function isBusyError(error: unknown): boolean {
   return error instanceof Error && /database is locked|SQLITE_BUSY/i.test(error.message);
 }
 
 /**
- * Next.js build/dev spawns several separate worker processes, each of which
- * imports this module and races to create/initialize the same SQLite file.
- * PRAGMA busy_timeout alone wasn't enough to avoid the occasional
- * "database is locked" failure on a cold start, so initialization also
- * retries with backoff at the JS level.
+ * In local file: mode, Next.js build/dev spawns several separate worker
+ * processes that race to create/initialize the same SQLite file. Retrying
+ * with backoff avoids the occasional "database is locked" failure on a
+ * cold start. Turso's remote libsql: mode is a real server and doesn't hit
+ * this, but the retry is harmless there too.
  */
-function withRetry<T>(fn: () => T, attempts = 10): T {
+async function withRetry<T>(fn: () => Promise<T>, attempts = 10): Promise<T> {
   for (let attempt = 1; attempt <= attempts; attempt++) {
     try {
-      return fn();
+      return await fn();
     } catch (error) {
       if (!isBusyError(error) || attempt === attempts) throw error;
-      sleepSync(50 * attempt);
+      await new Promise((resolve) => setTimeout(resolve, 50 * attempt));
     }
   }
 
   throw new Error("unreachable");
 }
 
-function createDatabase(): DatabaseSync {
+function resolveDatabaseUrl(): string {
+  const configured = process.env.DATABASE_URL;
+  if (configured) return configured;
+
   const dataDir = path.join(process.cwd(), "data");
   if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });
   }
+  return `file:${path.join(dataDir, "gradnjaplan.db")}`;
+}
 
-  const dbPath = path.join(dataDir, "gradnjaplan.db");
-  const instance = new DatabaseSync(dbPath);
+function createDbClient(): Client {
+  return createClient({
+    url: resolveDatabaseUrl(),
+    authToken: process.env.DATABASE_AUTH_TOKEN
+  });
+}
 
-  withRetry(() => instance.exec("PRAGMA busy_timeout = 10000;"));
-  withRetry(() => instance.exec("PRAGMA journal_mode = WAL;"));
-  withRetry(() => instance.exec("PRAGMA foreign_keys = ON;"));
-  withRetry(() => instance.exec(SCHEMA));
-
-  return instance;
+async function initSchema(client: Client): Promise<void> {
+  await withRetry(() => client.execute("PRAGMA foreign_keys = ON;"));
+  await withRetry(() => client.executeMultiple(SCHEMA));
 }
 
 declare global {
-  var __gradnjaplanDb: DatabaseSync | undefined;
+  var __gradnjaplanDb: Client | undefined;
+  var __gradnjaplanDbReady: Promise<void> | undefined;
 }
 
-export const db = globalThis.__gradnjaplanDb ?? createDatabase();
+export const db = globalThis.__gradnjaplanDb ?? createDbClient();
+export const dbReady = globalThis.__gradnjaplanDbReady ?? initSchema(db);
 
 if (process.env.NODE_ENV !== "production") {
   globalThis.__gradnjaplanDb = db;
+  globalThis.__gradnjaplanDbReady = dbReady;
+}
+
+export type QueryArgs = InArgs;
+
+export async function queryAll<T = Record<string, unknown>>(sql: string, args?: QueryArgs): Promise<T[]> {
+  await dbReady;
+  const result = await withRetry(() => db.execute({ sql, args: args ?? [] }));
+  return result.rows as unknown as T[];
+}
+
+export async function queryOne<T = Record<string, unknown>>(sql: string, args?: QueryArgs): Promise<T | null> {
+  const rows = await queryAll<T>(sql, args);
+  return rows[0] ?? null;
+}
+
+export async function execute(sql: string, args?: QueryArgs) {
+  await dbReady;
+  return withRetry(() => db.execute({ sql, args: args ?? [] }));
 }

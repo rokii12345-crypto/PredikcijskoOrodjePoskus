@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { db } from "@/lib/db";
+import { queryOne } from "@/lib/db";
 import { SESSION_COOKIE_NAME, verifySessionToken } from "@/lib/auth/session";
 
 export type CurrentUser = {
@@ -16,11 +16,10 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 
   if (!session) return null;
 
-  const row = db
-    .prepare("select id, email, display_name as displayName from users where id = ?")
-    .get(session.userId) as CurrentUser | undefined;
-
-  return row ?? null;
+  return queryOne<CurrentUser>(
+    "select id, email, display_name as displayName from users where id = :id",
+    { id: session.userId }
+  );
 }
 
 export async function requireUser(): Promise<CurrentUser> {

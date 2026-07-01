@@ -23,7 +23,7 @@ export async function createProject(
   const user = await requireUser();
   const draft = createDemoProject(user.id, startDate);
 
-  const projectId = createProjectRecord({
+  const projectId = await createProjectRecord({
     ownerUserId: user.id,
     name,
     startDate,
@@ -41,8 +41,8 @@ export async function deleteProject(formData: FormData) {
   const user = await requireUser();
   const projectId = String(formData.get("projectId") ?? "");
 
-  if (hasProjectAccess(user.id, projectId)) {
-    deleteProjectRecord(projectId);
+  if (await hasProjectAccess(user.id, projectId)) {
+    await deleteProjectRecord(projectId);
   }
 
   redirect("/projects");

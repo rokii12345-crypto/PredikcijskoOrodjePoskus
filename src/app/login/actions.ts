@@ -3,7 +3,7 @@
 import { randomUUID } from "node:crypto";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { db } from "@/lib/db";
+import { execute, queryOne } from "@/lib/db";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
 import { createSessionToken, SESSION_COOKIE_NAME, SESSION_MAX_AGE } from "@/lib/auth/session";
 
@@ -27,9 +27,10 @@ export async function signIn(_prevState: AuthActionState, formData: FormData): P
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
 
-  const user = db
-    .prepare("select id, password_hash as passwordHash from users where email = ?")
-    .get(email) as { id: string; passwordHash: string } | undefined;
+  const user = await queryOne<{ id: string; passwordHash: string }>(
+    "select id, password_hash as passwordHash from users where email = :email",
+    { email }
+  );
 
   if (!user || !verifyPassword(password, user.passwordHash)) {
     return { error: "Prijava ni uspela. Preveri e-pošto in geslo." };
@@ -52,15 +53,16 @@ export async function signUp(_prevState: AuthActionState, formData: FormData): P
     return { error: "Geslo mora imeti vsaj 6 znakov." };
   }
 
-  const existing = db.prepare("select id from users where email = ?").get(email);
+  const existing = await queryOne("select id from users where email = :email", { email });
   if (existing) {
     return { error: "Uporabnik s to e-pošto že obstaja. Prijavi se." };
   }
 
   const userId = randomUUID();
-  db.prepare(
-    "insert into users (id, email, password_hash, display_name) values (?, ?, ?, ?)"
-  ).run(userId, email, hashPassword(password), displayName || null);
+  await execute(
+    "insert into users (id, email, password_hash, display_name) values (:id, :email, :passwordHash, :displayName)",
+    { id: userId, email, passwordHash: hashPassword(password), displayName: displayName || null }
+  );
 
   await setSessionCookie(userId);
   redirect("/projects");

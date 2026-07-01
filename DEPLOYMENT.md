@@ -1,7 +1,7 @@
-# DEPLOYMENT — GitHub in samostojno gostovanje
+# DEPLOYMENT — GitHub, Vercel in Turso
 
 Ta dokument opisuje, kako aplikacijo GradnjaPlan poganjati lokalno, objaviti na GitHub in jo
-gostiti brez odvisnosti od zunanjih storitev (Supabase, Vercel Postgres ipd.).
+gostiti na Vercelu, brez odvisnosti od Supabase.
 
 Ciljni GitHub repozitorij:
 
@@ -14,25 +14,23 @@ Repo ima sicer staro ime `PredikcijskoOrodjePoskus`, vendar je v njem aplikacija
 ## Zakaj brez Supabase
 
 Prvotna zasnova (glej `SPECIFIKACIJA.md`, `PROMPT_ZA_CODEX.md`) je predvidevala Supabase Auth +
-Postgres. Aplikacija je bila naknadno preusmerjena na povsem samostojno arhitekturo, da jo je
-mogoče zgraditi, pognati in preveriti brez ročnega ustvarjanja zunanjih računov:
+Postgres. Aplikacija je bila naknadno preusmerjena na samostojno arhitekturo:
 
-- **Podatki**: vgrajen `node:sqlite` (Node.js 22.5+), datoteka `data/gradnjaplan.db`. Brez native
-  odvisnosti, brez ločenega DB strežnika.
+- **Podatki**: SQLite (prek `@libsql/client`) — lokalno datoteka `data/gradnjaplan.db`, v
+  produkciji na Vercelu pa gostovana baza pri [Turso](https://turso.tech) (isti SQLite dialekt,
+  dosegljiv prek omrežja, ker Vercel nima trajnega diska). Shema in vsi poizvedbeni ukazi so
+  identični v obeh primerih.
 - **Prijava**: lastna e-pošta/geslo prijava (geslo hashirano z `scrypt`), seja je podpisan cookie
   (HMAC s skrivnostjo `AUTH_SECRET`) — brez zunanjega auth ponudnika.
 - **Avtorizacija**: namesto Supabase Row Level Security vsaka poizvedba v `src/lib/data/queries.ts`
   preveri lastništvo/članstvo projekta v aplikacijski kodi (`hasProjectAccess`).
 
-Če boš kasneje želel pravo javno produkcijsko postavitev z več hkratnimi uporabniki na
-serverless platformi (Vercel), glej razdelek [Selitev na Postgres](#11-selitev-na-postgres-kasneje).
-
 ## 1. Predpogoji
 
-- Node.js 22.5+ (aplikacija je razvita in preizkušena na Node.js 24; potreben je vgrajen
-  `node:sqlite`).
+- Node.js 18+.
 - Git.
 - GitHub račun (za `git push`).
+- Za javno postavitev na Vercelu: Vercel račun in brezplačen [Turso](https://turso.tech) račun.
 
 ## 2. Namestitev
 
@@ -40,17 +38,23 @@ serverless platformi (Vercel), glej razdelek [Selitev na Postgres](#11-selitev-n
 npm install
 ```
 
-## 3. Okoljska spremenljivka
-
-Aplikacija potrebuje samo eno skrivnost — `AUTH_SECRET`, s katero se podpisujejo prijavni
-cookieji.
+## 3. Okoljske spremenljivke
 
 ```bash
 cp .env.example .env.local
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
-Izpis prilepi kot vrednost `AUTH_SECRET` v `.env.local`. Nikoli ne commitaj `.env.local`.
+- `AUTH_SECRET` — obvezna. Generiraj z:
+
+  ```bash
+  node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+  ```
+
+- `DATABASE_URL` / `DATABASE_AUTH_TOKEN` — neobvezni za lokalni razvoj. Če ju pustiš prazna,
+  aplikacija uporabi lokalno datoteko `data/gradnjaplan.db`. Nastaviti ju je treba samo za
+  postavitev na Vercel (glej spodaj).
+
+Nikoli ne commitaj `.env.local`.
 
 ## 4. Lokalni zagon
 
@@ -59,7 +63,7 @@ npm run dev
 ```
 
 Odpri [http://localhost:3000](http://localhost:3000), registriraj uporabnika in ustvari prvi
-projekt. Podatki se shranjujejo v `data/gradnjaplan.db` (samodejno ustvarjeno, v `.gitignore`).
+projekt. Podatki se privzeto shranjujejo v `data/gradnjaplan.db` (v `.gitignore`).
 
 ## 5. GitHub — objava v obstoječi repo
 
@@ -118,7 +122,7 @@ Ne commitaj:
 ```text
 .env.local
 .env
-data/                 (SQLite baza z uporabniškimi podatki)
+data/                 (lokalna SQLite baza z uporabniškimi podatki)
 ```
 
 `.gitignore` že izključuje `.env*`, `/data` in `node_modules`.
@@ -130,34 +134,70 @@ npm run lint
 npm run build
 ```
 
-## 8. Samostojno gostovanje (produkcija)
+## 8. Postavitev na Vercel (s Turso bazo)
 
-Ker SQLite podatke hrani v datoteki na disku, aplikacija za produkcijo potrebuje gostovanje s
-**trajnim diskom** — dolgo živeč Node.js proces, ne kratkotrajne (stateless) serverless funkcije.
-Primerno: VPS, Docker kontejner, Railway, Fly.io, Render (Node/Docker storitev, ne "serverless").
+Vercel poganja aplikacijo v serverless funkcijah, ki nimajo trajnega diska — lokalna SQLite
+datoteka se tam ne bi ohranila med zahtevki. Zato je za Vercel potrebna gostovana SQLite-kompatibilna
+baza pri [Turso](https://turso.tech).
+
+### 8.1 Ustvari Turso bazo
+
+1. Ustvari brezplačen račun na [turso.tech](https://turso.tech) (ali z Turso CLI: `turso auth signup`).
+2. Ustvari bazo:
+
+   ```bash
+   turso db create gradnjaplan
+   ```
+
+3. Pridobi connection URL:
+
+   ```bash
+   turso db show gradnjaplan --url
+   ```
+
+   Izpiše nekaj oblike `libsql://gradnjaplan-<tvoj-username>.turso.io`.
+
+4. Ustvari auth token:
+
+   ```bash
+   turso db tokens create gradnjaplan
+   ```
+
+Če ne želiš namestiti CLI-ja, oboje najdeš tudi v Turso spletnem vmesniku (nadzorna plošča baze →
+"Connect").
+
+### 8.2 Uvozi projekt v Vercel
+
+1. Prijavi se v Vercel in klikni **Add New Project**.
+2. Izberi GitHub repo `PredikcijskoOrodjePoskus`.
+3. Framework Preset naj bo **Next.js** (samodejno zaznano), build command ostane privzet
+   (`npm run build` oz. `next build`).
+4. Pod **Environment Variables** dodaj (za Production, Preview in Development):
+
+   ```env
+   AUTH_SECRET=...            # generiraj kot v razdelku 3
+   DATABASE_URL=libsql://...  # iz `turso db show`
+   DATABASE_AUTH_TOKEN=...    # iz `turso db tokens create`
+   ```
+
+5. Klikni **Deploy**.
+
+Po uspešnem buildu dobiš URL v obliki `https://ime-projekta.vercel.app`. Vercel bo ob vsakem pushu
+na `main` samodejno naredil nov deployment.
+
+## 9. Samostojno gostovanje (alternativa Vercelu)
+
+Če ne uporabljaš Vercela, aplikacija enako dobro teče kot navaden Node.js proces s **trajnim
+diskom** (VPS, Docker, Railway, Fly.io, Render) — takrat Turso sploh ni potreben, `DATABASE_URL`
+pusti prazen in aplikacija uporabi lokalno datoteko `data/gradnjaplan.db`, dokler je ta mapa na
+trajnem volumnu.
 
 ```bash
 npm run build
 npm run start
 ```
 
-Nastavi okoljski spremenljivki na strežniku:
-
-```env
-AUTH_SECRET=...           # isti generator kot zgoraj
-NODE_ENV=production
-```
-
-Poskrbi, da je mapa `data/` na trajnem volumnu (persistent disk/volume), sicer se ob vsakem
-redeployu baza izbriše.
-
-### Vercel
-
-**Vercel serverless funkcije nimajo trajnega diska** — vsak zahtevek lahko teče v novi instanci,
-zato se SQLite datoteka ne ohrani med zahtevki in ta postavitev na Vercelu ni zanesljiva za
-resnično večuporabniško uporabo. Za Vercel uporabi razdelek spodaj o selitvi na Postgres.
-
-## 9. Delo po spremembah
+## 10. Delo po spremembah
 
 ```bash
 git status
@@ -166,23 +206,12 @@ git commit -m "Opis spremembe"
 git push
 ```
 
-## 10. Minimalni produkcijski checklist
+## 11. Minimalni produkcijski checklist
 
-- `AUTH_SECRET` je nastavljen na produkcijskem strežniku in ni v Gitu.
-- `data/` (SQLite baza) je na trajnem disku/volumnu.
+- `AUTH_SECRET` je nastavljen v produkciji (Vercel env vars ali strežniško okolje) in ni v Gitu.
+- Na Vercelu sta nastavljena `DATABASE_URL` in `DATABASE_AUTH_TOKEN` (Turso); pri samostojnem
+  gostovanju je `data/` na trajnem disku.
 - `.env.local` ni na GitHubu.
 - Registracija in prijava delujeta, uporabnik vidi samo svoje projekte
   (`hasProjectAccess` v `src/lib/data/queries.ts`).
 - Kredit je jasno označen kot poenostavljen vir financiranja, ne bančni izračun.
-
-## 11. Selitev na Postgres (kasneje)
-
-Če boš želel javno produkcijsko postavitev na serverless platformi (Vercel + kredit), je najlažja
-pot:
-
-1. Zamenjaj `src/lib/db/index.ts` in `src/lib/data/queries.ts` z ekvivalentnim slojem nad
-   Postgres (npr. `pg` ali Supabase). Poslovna logika (`src/lib/scheduling`, `src/lib/costs`) ostane
-   nespremenjena, ker dela samo s tipi iz `src/types/index.ts`.
-2. Zamenjaj lastno sejo (`src/lib/auth`) s ponudnikom, ki podpira serverless (Supabase Auth,
-   Auth.js ...), ali obdrži isti podpisan-cookie pristop — deluje enako dobro tudi na Postgresu.
-3. `hasProjectAccess` v `src/lib/data/queries.ts` prevedi v SQL poizvedbo/RLS pravilo na novi bazi.

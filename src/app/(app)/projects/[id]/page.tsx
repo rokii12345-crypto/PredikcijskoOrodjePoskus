@@ -23,7 +23,7 @@ export default async function ProjectDashboardPage({
 }) {
   const { id } = await params;
   const user = await requireUser();
-  const data = getProjectFullData(user.id, id);
+  const data = await getProjectFullData(user.id, id);
 
   if (!data) {
     notFound();

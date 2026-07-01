@@ -4,7 +4,7 @@ import { getProjectsForUser } from "@/lib/data/queries";
 
 export default async function ProjectsPage() {
   const user = await requireUser();
-  const projects = getProjectsForUser(user.id);
+  const projects = await getProjectsForUser(user.id);
 
   return (
     <div>

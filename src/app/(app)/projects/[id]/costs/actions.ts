@@ -21,11 +21,11 @@ export async function upsertCostItem(formData: FormData) {
   const user = await requireUser();
   const projectId = String(formData.get("projectId") ?? "");
 
-  if (!hasProjectAccess(user.id, projectId)) return;
+  if (!(await hasProjectAccess(user.id, projectId))) return;
 
   const costItemId = String(formData.get("costItemId") ?? "") || null;
 
-  upsertCostItemRecord(projectId, costItemId, {
+  await upsertCostItemRecord(projectId, costItemId, {
     taskCode: String(formData.get("taskCode") ?? ""),
     name: String(formData.get("name") ?? ""),
     status: String(formData.get("status") ?? "estimate") as CostItem["status"],
@@ -45,10 +45,10 @@ export async function deleteCostItem(formData: FormData) {
   const user = await requireUser();
   const projectId = String(formData.get("projectId") ?? "");
 
-  if (!hasProjectAccess(user.id, projectId)) return;
+  if (!(await hasProjectAccess(user.id, projectId))) return;
 
   const costItemId = String(formData.get("costItemId") ?? "");
-  deleteCostItemRecord(projectId, costItemId);
+  await deleteCostItemRecord(projectId, costItemId);
 
   afterChange(projectId);
 }
