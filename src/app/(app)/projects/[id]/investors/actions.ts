@@ -1,38 +1,36 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { requireUser } from "@/lib/auth/server";
+import { deleteInvestorRecord, hasProjectAccess, upsertInvestorRecord } from "@/lib/data/queries";
 
 export async function upsertInvestor(formData: FormData) {
+  const user = await requireUser();
   const projectId = String(formData.get("projectId") ?? "");
-  const investorId = String(formData.get("investorId") ?? "");
 
-  const row = {
-    project_id: projectId,
+  if (!hasProjectAccess(user.id, projectId)) return;
+
+  const investorId = String(formData.get("investorId") ?? "") || null;
+
+  upsertInvestorRecord(projectId, investorId, {
     name: String(formData.get("name") ?? ""),
-    share_percent: Number(formData.get("sharePercent") ?? 0),
+    sharePercent: Number(formData.get("sharePercent") ?? 0),
     email: String(formData.get("email") ?? "") || null,
     note: String(formData.get("note") ?? "") || null
-  };
-
-  const supabase = await createClient();
-
-  if (investorId) {
-    await supabase.from("investors").update(row).eq("id", investorId);
-  } else {
-    await supabase.from("investors").insert(row);
-  }
+  });
 
   revalidatePath(`/projects/${projectId}`);
   revalidatePath(`/projects/${projectId}/investors`);
 }
 
 export async function deleteInvestor(formData: FormData) {
+  const user = await requireUser();
   const projectId = String(formData.get("projectId") ?? "");
-  const investorId = String(formData.get("investorId") ?? "");
 
-  const supabase = await createClient();
-  await supabase.from("investors").delete().eq("id", investorId);
+  if (!hasProjectAccess(user.id, projectId)) return;
+
+  const investorId = String(formData.get("investorId") ?? "");
+  deleteInvestorRecord(projectId, investorId);
 
   revalidatePath(`/projects/${projectId}`);
   revalidatePath(`/projects/${projectId}/investors`);

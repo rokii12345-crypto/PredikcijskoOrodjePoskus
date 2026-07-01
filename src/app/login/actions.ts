@@ -1,60 +1,73 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { db } from "@/lib/db";
+import { hashPassword, verifyPassword } from "@/lib/auth/password";
+import { createSessionToken, SESSION_COOKIE_NAME, SESSION_MAX_AGE } from "@/lib/auth/session";
 
 export type AuthActionState = {
   error?: string;
   info?: string;
 };
 
+async function setSessionCookie(userId: string) {
+  const cookieStore = await cookies();
+  cookieStore.set(SESSION_COOKIE_NAME, createSessionToken(userId), {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: SESSION_MAX_AGE
+  });
+}
+
 export async function signIn(_prevState: AuthActionState, formData: FormData): Promise<AuthActionState> {
-  const email = String(formData.get("email") ?? "");
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
 
-  const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const user = db
+    .prepare("select id, password_hash as passwordHash from users where email = ?")
+    .get(email) as { id: string; passwordHash: string } | undefined;
 
-  if (error) {
+  if (!user || !verifyPassword(password, user.passwordHash)) {
     return { error: "Prijava ni uspela. Preveri e-pošto in geslo." };
   }
 
+  await setSessionCookie(user.id);
   redirect("/projects");
 }
 
 export async function signUp(_prevState: AuthActionState, formData: FormData): Promise<AuthActionState> {
-  const email = String(formData.get("email") ?? "");
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
-  const displayName = String(formData.get("displayName") ?? "");
+  const displayName = String(formData.get("displayName") ?? "").trim();
+
+  if (!email || !email.includes("@")) {
+    return { error: "Vnesi veljaven e-poštni naslov." };
+  }
 
   if (password.length < 6) {
     return { error: "Geslo mora imeti vsaj 6 znakov." };
   }
 
-  const supabase = await createClient();
-  const { data, error } = await supabase.auth.signUp({ email, password });
-
-  if (error) {
-    return { error: `Registracija ni uspela: ${error.message}` };
+  const existing = db.prepare("select id from users where email = ?").get(email);
+  if (existing) {
+    return { error: "Uporabnik s to e-pošto že obstaja. Prijavi se." };
   }
 
-  if (data.user) {
-    await supabase.from("profiles").upsert({
-      id: data.user.id,
-      email,
-      display_name: displayName || null
-    });
-  }
+  const userId = randomUUID();
+  db.prepare(
+    "insert into users (id, email, password_hash, display_name) values (?, ?, ?, ?)"
+  ).run(userId, email, hashPassword(password), displayName || null);
 
-  if (!data.session) {
-    return { info: "Registracija je uspela. Preveri e-pošto in potrdi račun, nato se prijavi." };
-  }
-
+  await setSessionCookie(userId);
   redirect("/projects");
 }
 
 export async function signOut() {
-  const supabase = await createClient();
-  await supabase.auth.signOut();
+  const cookieStore = await cookies();
+  cookieStore.delete(SESSION_COOKIE_NAME);
   redirect("/login");
 }

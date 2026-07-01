@@ -1,12 +1,12 @@
 import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import { getProjectFullData } from "@/lib/data/projectData";
+import { requireUser } from "@/lib/auth/server";
+import { getProjectFullData } from "@/lib/data/queries";
 import { deleteInvestor, upsertInvestor } from "./actions";
 
 export default async function InvestorsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const supabase = await createClient();
-  const data = await getProjectFullData(supabase, id);
+  const user = await requireUser();
+  const data = getProjectFullData(user.id, id);
 
   if (!data) {
     notFound();

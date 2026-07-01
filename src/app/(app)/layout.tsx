@@ -1,17 +1,9 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { requireUser } from "@/lib/auth/server";
 import { signOut } from "@/app/login/actions";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  const user = await requireUser();
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -21,7 +13,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             GradnjaPlan
           </Link>
           <div className="flex items-center gap-4 text-sm text-slate-600">
-            <span>{user.email}</span>
+            <span>{user.displayName ?? user.email}</span>
             <form action={signOut}>
               <button type="submit" className="text-slate-500 hover:text-slate-900">
                 Odjava

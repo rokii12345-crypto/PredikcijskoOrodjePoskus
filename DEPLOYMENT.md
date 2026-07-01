@@ -1,253 +1,163 @@
-# DEPLOYMENT — GitHub, Supabase in Vercel
+# DEPLOYMENT — GitHub in samostojno gostovanje
 
-Ta dokument opisuje, kako aplikacijo GradnjaPlan objaviti iz lokalnega računalnika na GitHub in nato na Vercel.
+Ta dokument opisuje, kako aplikacijo GradnjaPlan poganjati lokalno, objaviti na GitHub in jo
+gostiti brez odvisnosti od zunanjih storitev (Supabase, Vercel Postgres ipd.).
 
-Za ta projekt uporabljamo obstoječi GitHub repozitorij:
+Ciljni GitHub repozitorij:
 
 ```text
 https://github.com/rokii12345-crypto/PredikcijskoOrodjePoskus.git
 ```
 
-Repo ima sicer staro ime `PredikcijskoOrodjePoskus`, vendar bo v njem aplikacija GradnjaPlan.
+Repo ima sicer staro ime `PredikcijskoOrodjePoskus`, vendar je v njem aplikacija GradnjaPlan.
 
----
+## Zakaj brez Supabase
+
+Prvotna zasnova (glej `SPECIFIKACIJA.md`, `PROMPT_ZA_CODEX.md`) je predvidevala Supabase Auth +
+Postgres. Aplikacija je bila naknadno preusmerjena na povsem samostojno arhitekturo, da jo je
+mogoče zgraditi, pognati in preveriti brez ročnega ustvarjanja zunanjih računov:
+
+- **Podatki**: vgrajen `node:sqlite` (Node.js 22.5+), datoteka `data/gradnjaplan.db`. Brez native
+  odvisnosti, brez ločenega DB strežnika.
+- **Prijava**: lastna e-pošta/geslo prijava (geslo hashirano z `scrypt`), seja je podpisan cookie
+  (HMAC s skrivnostjo `AUTH_SECRET`) — brez zunanjega auth ponudnika.
+- **Avtorizacija**: namesto Supabase Row Level Security vsaka poizvedba v `src/lib/data/queries.ts`
+  preveri lastništvo/članstvo projekta v aplikacijski kodi (`hasProjectAccess`).
+
+Če boš kasneje želel pravo javno produkcijsko postavitev z več hkratnimi uporabniki na
+serverless platformi (Vercel), glej razdelek [Selitev na Postgres](#11-selitev-na-postgres-kasneje).
 
 ## 1. Predpogoji
 
-Namesti oziroma pripravi:
+- Node.js 22.5+ (aplikacija je razvita in preizkušena na Node.js 24; potreben je vgrajen
+  `node:sqlite`).
+- Git.
+- GitHub račun (za `git push`).
 
-- Node.js LTS
-- Git
-- GitHub račun
-- Vercel račun
-- Supabase račun
-- VS Code
-
-Opcijsko:
-
-- GitHub CLI
-
----
-
-## 2. Ustvari Next.js projekt
-
-Če projekt še ne obstaja, ga ustvari:
+## 2. Namestitev
 
 ```bash
-npx create-next-app@latest gradnjaplan --typescript --eslint --app --src-dir
-cd gradnjaplan
+npm install
 ```
 
-Nato v projekt kopiraj vsebino starter paketa:
+## 3. Okoljska spremenljivka
 
-```text
-src/
-supabase/
-README.md
-SPECIFIKACIJA.md
-PROMPT_ZA_CODEX.md
-DEPLOYMENT.md
-.env.example
-```
-
-Namesti priporočene knjižnice:
+Aplikacija potrebuje samo eno skrivnost — `AUTH_SECRET`, s katero se podpisujejo prijavni
+cookieji.
 
 ```bash
-npm install @supabase/supabase-js @supabase/ssr recharts date-fns
+cp .env.example .env.local
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
-Zaženi lokalno:
+Izpis prilepi kot vrednost `AUTH_SECRET` v `.env.local`. Nikoli ne commitaj `.env.local`.
+
+## 4. Lokalni zagon
 
 ```bash
 npm run dev
 ```
 
-Odpri:
+Odpri [http://localhost:3000](http://localhost:3000), registriraj uporabnika in ustvari prvi
+projekt. Podatki se shranjujejo v `data/gradnjaplan.db` (samodejno ustvarjeno, v `.gitignore`).
 
-```text
-http://localhost:3000
-```
+## 5. GitHub — objava v obstoječi repo
 
----
-
-## 3. Supabase
-
-### 3.1 Ustvari Supabase projekt
-
-1. Prijavi se v Supabase.
-2. Ustvari nov projekt.
-3. Kopiraj Project URL.
-4. Kopiraj anon public key.
-5. V SQL editorju zaženi datoteko:
-
-```text
-supabase/schema.sql
-```
-
-### 3.2 Lokalni environment
-
-Ustvari datoteko `.env.local`:
-
-```bash
-cp .env.example .env.local
-```
-
-Vpiši vrednosti:
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://tvoj-projekt.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=tvoj-anon-public-key
-```
-
-Nikoli ne commitaj `.env.local`.
-
----
-
-## 4. GitHub — objava v obstoječi repo
-
-Ciljni GitHub repo:
-
-```text
-https://github.com/rokii12345-crypto/PredikcijskoOrodjePoskus.git
-```
-
-### 4.1 Preveri, ali je Git že inicializiran
-
-V terminalu v mapi projekta zaženi:
+### 5.1 Preveri, ali je Git že inicializiran
 
 ```bash
 git status
 ```
 
-Če dobiš napako, da mapa ni Git repozitorij, naredi:
+Če dobiš napako, da mapa ni Git repozitorij:
 
 ```bash
 git init
 ```
 
-### 4.2 Preveri remote
+### 5.2 Preveri remote
 
 ```bash
 git remote -v
 ```
 
-Če remote še ni nastavljen, dodaj:
+Če remote še ni nastavljen:
 
 ```bash
 git remote add origin https://github.com/rokii12345-crypto/PredikcijskoOrodjePoskus.git
 ```
 
-Če remote že obstaja, ampak kaže drugam, ga popravi:
+Če remote že obstaja, ampak kaže drugam:
 
 ```bash
 git remote set-url origin https://github.com/rokii12345-crypto/PredikcijskoOrodjePoskus.git
 ```
 
-### 4.3 Prvi commit
+### 5.3 Commit in push
 
 ```bash
 git add .
-git commit -m "Initial GradnjaPlan MVP"
-```
-
-Če ti Git napiše, da ni sprememb, pomeni, da je vse že commitano.
-
-### 4.4 Push na GitHub
-
-Za objavo v glavno vejo uporabi:
-
-```bash
+git commit -m "Opis spremembe"
 git branch -M main
 git push -u origin main
 ```
 
-Če repo na GitHubu že vsebuje stare datoteke in dobiš napako, najprej naredi pull:
+Če repo na GitHubu že vsebuje druge datoteke:
 
 ```bash
 git pull origin main --rebase
-```
-
-Nato ponovno:
-
-```bash
 git push -u origin main
 ```
-
-Če pride do konfliktov, jih najprej ročno reši v VS Code, nato:
-
-```bash
-git add .
-git rebase --continue
-git push -u origin main
-```
-
-### 4.5 Pomembno
 
 Ne uporabljaj `--force`, razen če zavestno želiš prepisati zgodovino repozitorija.
 
-Za običajen začetek je varneje:
+## 6. Kaj ne sme iti na GitHub
 
-```bash
-git pull origin main --rebase
-git push -u origin main
-```
-
----
-
-## 5. Vercel
-
-### 5.1 Uvozi projekt
-
-1. Prijavi se v Vercel.
-2. Klikni **Add New Project**.
-3. Izberi GitHub repo:
+Ne commitaj:
 
 ```text
-PredikcijskoOrodjePoskus
+.env.local
+.env
+data/                 (SQLite baza z uporabniškimi podatki)
 ```
 
-4. Framework Preset naj bo **Next.js**.
-5. Build command naj ostane privzeto:
+`.gitignore` že izključuje `.env*`, `/data` in `node_modules`.
+
+## 7. Preverjanje pred objavo
 
 ```bash
+npm run lint
 npm run build
 ```
 
-6. Output directory naj ostane prazno oziroma privzeto za Next.js.
-7. Dodaj environment variables.
+## 8. Samostojno gostovanje (produkcija)
 
-### 5.2 Environment variables na Vercelu
+Ker SQLite podatke hrani v datoteki na disku, aplikacija za produkcijo potrebuje gostovanje s
+**trajnim diskom** — dolgo živeč Node.js proces, ne kratkotrajne (stateless) serverless funkcije.
+Primerno: VPS, Docker kontejner, Railway, Fly.io, Render (Node/Docker storitev, ne "serverless").
 
-V Vercel Project Settings dodaj:
+```bash
+npm run build
+npm run start
+```
+
+Nastavi okoljski spremenljivki na strežniku:
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=https://tvoj-projekt.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=tvoj-anon-public-key
+AUTH_SECRET=...           # isti generator kot zgoraj
+NODE_ENV=production
 ```
 
-Dodaj jih za:
+Poskrbi, da je mapa `data/` na trajnem volumnu (persistent disk/volume), sicer se ob vsakem
+redeployu baza izbriše.
 
-- Production,
-- Preview,
-- Development, če uporabljaš Vercel pull.
+### Vercel
 
-### 5.3 Deploy
+**Vercel serverless funkcije nimajo trajnega diska** — vsak zahtevek lahko teče v novi instanci,
+zato se SQLite datoteka ne ohrani med zahtevki in ta postavitev na Vercelu ni zanesljiva za
+resnično večuporabniško uporabo. Za Vercel uporabi razdelek spodaj o selitvi na Postgres.
 
-Klikni **Deploy**.
-
-Po uspešnem buildu dobiš URL v obliki:
-
-```text
-https://ime-projekta.vercel.app
-```
-
-Ker je GitHub repo imenovan `PredikcijskoOrodjePoskus`, lahko Vercel predlaga podobno ime projekta. V Vercelu ga lahko preimenuješ v `gradnjaplan`, tudi če GitHub repo ostane `PredikcijskoOrodjePoskus`.
-
----
-
-## 6. Delo po spremembah
-
-Ko narediš spremembe:
+## 9. Delo po spremembah
 
 ```bash
 git status
@@ -256,72 +166,23 @@ git commit -m "Opis spremembe"
 git push
 ```
 
-Vercel bo ob pushu na GitHub samodejno naredil nov deployment.
-
----
-
-## 7. Kaj ne sme iti na GitHub
-
-Ne commitaj:
-
-```text
-.env.local
-.env
-Supabase service role key
-uporabniških podatkov
-izvozov baze
-računov, pogodb, ponudb
-```
-
-V GitHub gre:
-
-```text
-koda
-template podatki
-demo podatki
-SQL schema
-navodila
-```
-
----
-
-## 8. Priporočen `.gitignore`
-
-Preveri, da `.gitignore` vsebuje:
-
-```gitignore
-node_modules
-.next
-.env
-.env.local
-.env*.local
-.vercel
-```
-
----
-
-## 9. Preverjanje pred objavo
-
-Pred vsakim pushom preveri:
-
-```bash
-npm run lint
-npm run build
-```
-
-Če build lokalno pade, bo zelo verjetno padel tudi na Vercelu.
-
----
-
 ## 10. Minimalni produkcijski checklist
 
-Preden aplikacijo uporablja kdo drug:
-
-- Supabase RLS je vključen.
-- Vsi podatki so vezani na `owner_user_id` ali članstvo v projektu.
+- `AUTH_SECRET` je nastavljen na produkcijskem strežniku in ni v Gitu.
+- `data/` (SQLite baza) je na trajnem disku/volumnu.
 - `.env.local` ni na GitHubu.
-- Vercel environment variables so nastavljene.
-- Registracija in prijava delujeta.
-- Uporabnik vidi samo svoje projekte.
-- Demo podatki niso pomešani z realnimi uporabniškimi podatki.
+- Registracija in prijava delujeta, uporabnik vidi samo svoje projekte
+  (`hasProjectAccess` v `src/lib/data/queries.ts`).
 - Kredit je jasno označen kot poenostavljen vir financiranja, ne bančni izračun.
+
+## 11. Selitev na Postgres (kasneje)
+
+Če boš želel javno produkcijsko postavitev na serverless platformi (Vercel + kredit), je najlažja
+pot:
+
+1. Zamenjaj `src/lib/db/index.ts` in `src/lib/data/queries.ts` z ekvivalentnim slojem nad
+   Postgres (npr. `pg` ali Supabase). Poslovna logika (`src/lib/scheduling`, `src/lib/costs`) ostane
+   nespremenjena, ker dela samo s tipi iz `src/types/index.ts`.
+2. Zamenjaj lastno sejo (`src/lib/auth`) s ponudnikom, ki podpira serverless (Supabase Auth,
+   Auth.js ...), ali obdrži isti podpisan-cookie pristop — deluje enako dobro tudi na Postgresu.
+3. `hasProjectAccess` v `src/lib/data/queries.ts` prevedi v SQL poizvedbo/RLS pravilo na novi bazi.

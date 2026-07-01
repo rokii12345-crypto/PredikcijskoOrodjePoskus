@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { requireUser } from "@/lib/auth/server";
+import { getProject, hasProjectAccess } from "@/lib/data/queries";
 import { ProjectNav } from "@/components/ProjectNav";
 import { DeleteProjectForm } from "@/components/DeleteProjectForm";
 
@@ -11,8 +12,13 @@ export default async function ProjectLayout({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const supabase = await createClient();
-  const { data: project } = await supabase.from("projects").select("id, name").eq("id", id).single();
+  const user = await requireUser();
+
+  if (!hasProjectAccess(user.id, id)) {
+    notFound();
+  }
+
+  const project = getProject(id);
 
   if (!project) {
     notFound();

@@ -1,48 +1,43 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
-import { recalculateProject } from "@/lib/data/projectData";
+import { requireUser } from "@/lib/auth/server";
+import { deleteFundingSourceRecord, hasProjectAccess, upsertFundingSourceRecord } from "@/lib/data/queries";
 import type { FundingSourceType } from "@/types";
 
-async function afterChange(projectId: string) {
-  const supabase = await createClient();
-  await recalculateProject(supabase, projectId);
+function afterChange(projectId: string) {
   revalidatePath(`/projects/${projectId}`);
   revalidatePath(`/projects/${projectId}/funding`);
   revalidatePath(`/projects/${projectId}/payments`);
 }
 
 export async function upsertFundingSource(formData: FormData) {
+  const user = await requireUser();
   const projectId = String(formData.get("projectId") ?? "");
-  const fundingSourceId = String(formData.get("fundingSourceId") ?? "");
 
-  const row = {
-    project_id: projectId,
+  if (!hasProjectAccess(user.id, projectId)) return;
+
+  const fundingSourceId = String(formData.get("fundingSourceId") ?? "") || null;
+
+  upsertFundingSourceRecord(projectId, fundingSourceId, {
     name: String(formData.get("name") ?? ""),
     type: String(formData.get("type") ?? "own_funds") as FundingSourceType,
-    available_amount: Number(formData.get("availableAmount") ?? 0),
-    available_from: String(formData.get("availableFrom") ?? ""),
+    availableAmount: Number(formData.get("availableAmount") ?? 0),
+    availableFrom: String(formData.get("availableFrom") ?? ""),
     note: String(formData.get("note") ?? "") || null
-  };
+  });
 
-  const supabase = await createClient();
-
-  if (fundingSourceId) {
-    await supabase.from("funding_sources").update(row).eq("id", fundingSourceId);
-  } else {
-    await supabase.from("funding_sources").insert(row);
-  }
-
-  await afterChange(projectId);
+  afterChange(projectId);
 }
 
 export async function deleteFundingSource(formData: FormData) {
+  const user = await requireUser();
   const projectId = String(formData.get("projectId") ?? "");
+
+  if (!hasProjectAccess(user.id, projectId)) return;
+
   const fundingSourceId = String(formData.get("fundingSourceId") ?? "");
+  deleteFundingSourceRecord(projectId, fundingSourceId);
 
-  const supabase = await createClient();
-  await supabase.from("funding_sources").delete().eq("id", fundingSourceId);
-
-  await afterChange(projectId);
+  afterChange(projectId);
 }

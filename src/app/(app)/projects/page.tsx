@@ -1,15 +1,10 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
-import { projectFromRow } from "@/lib/data/mappers";
+import { requireUser } from "@/lib/auth/server";
+import { getProjectsForUser } from "@/lib/data/queries";
 
 export default async function ProjectsPage() {
-  const supabase = await createClient();
-  const { data: rows } = await supabase
-    .from("projects")
-    .select("*")
-    .order("created_at", { ascending: false });
-
-  const projects = (rows ?? []).map(projectFromRow);
+  const user = await requireUser();
+  const projects = getProjectsForUser(user.id);
 
   return (
     <div>

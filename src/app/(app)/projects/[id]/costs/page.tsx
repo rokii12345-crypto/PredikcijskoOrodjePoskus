@@ -1,13 +1,13 @@
 import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import { getProjectFullData, paymentRules } from "@/lib/data/projectData";
+import { requireUser } from "@/lib/auth/server";
+import { getProjectFullData, paymentRules } from "@/lib/data/queries";
 import { COST_STATUS_LABELS, FUNDING_SOURCE_TYPE_LABELS } from "@/lib/constants";
 import { deleteCostItem, upsertCostItem } from "./actions";
 
 export default async function CostsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const supabase = await createClient();
-  const data = await getProjectFullData(supabase, id);
+  const user = await requireUser();
+  const data = getProjectFullData(user.id, id);
 
   if (!data) {
     notFound();

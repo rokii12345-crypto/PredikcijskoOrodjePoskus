@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import { getProjectFullData } from "@/lib/data/projectData";
+import { requireUser } from "@/lib/auth/server";
+import { getProjectFullData } from "@/lib/data/queries";
 import { FUNDING_SOURCE_KIND_LABELS } from "@/lib/constants";
 import { deleteFundingSource, upsertFundingSource } from "./actions";
 
@@ -10,8 +10,8 @@ function formatEur(value: number) {
 
 export default async function FundingPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const supabase = await createClient();
-  const data = await getProjectFullData(supabase, id);
+  const user = await requireUser();
+  const data = getProjectFullData(user.id, id);
 
   if (!data) {
     notFound();

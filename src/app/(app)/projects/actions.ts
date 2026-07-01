@@ -1,15 +1,9 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { requireUser } from "@/lib/auth/server";
 import { createDemoProject } from "@/lib/demo/createDemoProject";
-import { recalculateProject } from "@/lib/data/projectData";
-import {
-  costItemToRow,
-  fundingSourceToRow,
-  investorToRow,
-  taskToRow
-} from "@/lib/data/mappers";
+import { createProject as createProjectRecord, deleteProjectRecord, hasProjectAccess } from "@/lib/data/queries";
 
 export type NewProjectState = {
   error?: string;
@@ -26,62 +20,30 @@ export async function createProject(
     return { error: "Vnesi ime projekta in datum začetka gradnje." };
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
+  const user = await requireUser();
   const draft = createDemoProject(user.id, startDate);
-  draft.project.name = name;
 
-  const { data: projectRow, error: projectError } = await supabase
-    .from("projects")
-    .insert({
-      owner_user_id: user.id,
-      name: draft.project.name,
-      project_type: draft.project.projectType,
-      start_date: draft.project.startDate,
-      scheduling_mode: draft.project.schedulingMode,
-      currency: draft.project.currency,
-      contingency_percent: draft.project.contingencyPercent
-    })
-    .select()
-    .single();
-
-  if (projectError || !projectRow) {
-    return { error: `Ustvarjanje projekta ni uspelo: ${projectError?.message}` };
-  }
-
-  const projectId = projectRow.id as string;
-
-  await supabase
-    .from("investors")
-    .insert(draft.investors.map((investor) => investorToRow({ ...investor, projectId })));
-
-  await supabase
-    .from("funding_sources")
-    .insert(draft.fundingSources.map((source) => fundingSourceToRow({ ...source, projectId })));
-
-  await supabase.from("tasks").insert(
-    draft.tasks.map((task) => taskToRow({ ...task, projectId }))
-  );
-
-  await supabase.from("cost_items").insert(
-    draft.costItems.map((item) => costItemToRow({ ...item, projectId }))
-  );
-
-  await recalculateProject(supabase, projectId);
+  const projectId = createProjectRecord({
+    ownerUserId: user.id,
+    name,
+    startDate,
+    contingencyPercent: draft.project.contingencyPercent,
+    investors: draft.investors,
+    fundingSources: draft.fundingSources,
+    tasks: draft.tasks,
+    costItems: draft.costItems
+  });
 
   redirect(`/projects/${projectId}`);
 }
 
 export async function deleteProject(formData: FormData) {
+  const user = await requireUser();
   const projectId = String(formData.get("projectId") ?? "");
-  const supabase = await createClient();
-  await supabase.from("projects").delete().eq("id", projectId);
+
+  if (hasProjectAccess(user.id, projectId)) {
+    deleteProjectRecord(projectId);
+  }
+
   redirect("/projects");
 }

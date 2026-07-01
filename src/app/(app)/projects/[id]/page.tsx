@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import { getProjectFullData, paymentRules } from "@/lib/data/projectData";
+import { requireUser } from "@/lib/auth/server";
+import { getProjectFullData, paymentRules } from "@/lib/data/queries";
 import { calculateCashflow } from "@/lib/costs/calculateCashflow";
 import { validateProject } from "@/lib/costs/validateProject";
 import { todayIso } from "@/lib/scheduling/dateUtils";
@@ -22,8 +22,8 @@ export default async function ProjectDashboardPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const supabase = await createClient();
-  const data = await getProjectFullData(supabase, id);
+  const user = await requireUser();
+  const data = getProjectFullData(user.id, id);
 
   if (!data) {
     notFound();
