@@ -163,12 +163,21 @@ async function withClient<T>(fn: (client: Client) => Promise<T>): Promise<T> {
   const client = createDbClient();
   try {
     return await withRetry(() => fn(client));
+  } catch (error) {
+    console.error(
+      `[db] query failed. node=${process.version} name=${error instanceof Error ? error.name : typeof error} message=${error instanceof Error ? error.message : String(error)} cause=${error instanceof Error && error.cause ? String(error.cause) : "none"}`
+    );
+    throw error;
   } finally {
     client.close();
   }
 }
 
 async function ensureSchema(): Promise<void> {
+  const scheme = process.env.DATABASE_URL ? process.env.DATABASE_URL.split("://")[0] : "file (local fallback)";
+  console.log(
+    `[db] initializing schema. node=${process.version} scheme=${scheme} hasToken=${Boolean(process.env.DATABASE_AUTH_TOKEN)}`
+  );
   await withClient(async (client) => {
     await client.execute("PRAGMA foreign_keys = ON;");
     await client.executeMultiple(SCHEMA);
