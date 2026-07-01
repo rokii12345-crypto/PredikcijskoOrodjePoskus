@@ -1,0 +1,931 @@
+{
+  "templateCode": "HOUSE_NEW_BUILD_STANDARD_SI",
+  "templateName": "Novogradnja hiše - standardni plan",
+  "currency": "EUR",
+  "defaultContingencyPercent": 10,
+  "tasks": [
+    {
+      "code": "A",
+      "name": "Projektiranje in dovoljenja",
+      "type": "summary",
+      "parentCode": null,
+      "durationDays": 0,
+      "dependencies": [],
+      "defaultFundingSourceType": "own_funds",
+      "sortOrder": 100
+    },
+    {
+      "code": "A010",
+      "name": "Zbiranje izhodišč in želja investitorjev",
+      "type": "task",
+      "parentCode": "A",
+      "durationDays": 10,
+      "dependencies": [],
+      "defaultFundingSourceType": "own_funds",
+      "sortOrder": 110
+    },
+    {
+      "code": "A020",
+      "name": "Geodetski načrt",
+      "type": "task",
+      "parentCode": "A",
+      "durationDays": 21,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "A010",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "own_funds",
+      "sortOrder": 120
+    },
+    {
+      "code": "A030",
+      "name": "Idejna zasnova / IDZ",
+      "type": "task",
+      "parentCode": "A",
+      "durationDays": 35,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "A010",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "own_funds",
+      "sortOrder": 130
+    },
+    {
+      "code": "A040",
+      "name": "DGD - projekt za gradbeno dovoljenje",
+      "type": "task",
+      "parentCode": "A",
+      "durationDays": 56,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "A020",
+          "type": "FS",
+          "lagDays": 0
+        },
+        {
+          "predecessorTaskCode": "A030",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "own_funds",
+      "sortOrder": 140
+    },
+    {
+      "code": "A050",
+      "name": "Pridobivanje mnenj in soglasij",
+      "type": "task",
+      "parentCode": "A",
+      "durationDays": 45,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "A040",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "own_funds",
+      "sortOrder": 150
+    },
+    {
+      "code": "A060",
+      "name": "Dopolnitve DGD",
+      "type": "task",
+      "parentCode": "A",
+      "durationDays": 21,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "A050",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "own_funds",
+      "sortOrder": 160
+    },
+    {
+      "code": "A070",
+      "name": "Postopek gradbenega dovoljenja",
+      "type": "task",
+      "parentCode": "A",
+      "durationDays": 60,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "A060",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "own_funds",
+      "sortOrder": 170
+    },
+    {
+      "code": "A080",
+      "name": "Pravnomočno gradbeno dovoljenje",
+      "type": "milestone",
+      "parentCode": "A",
+      "durationDays": 0,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "A070",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "own_funds",
+      "sortOrder": 180
+    },
+    {
+      "code": "A090",
+      "name": "PZI - projekt za izvedbo",
+      "type": "task",
+      "parentCode": "A",
+      "durationDays": 56,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "A040",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "own_funds",
+      "sortOrder": 190
+    },
+    {
+      "code": "A100",
+      "name": "Popis del in projektantski predračun",
+      "type": "task",
+      "parentCode": "A",
+      "durationDays": 21,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "A090",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "own_funds",
+      "sortOrder": 200
+    },
+    {
+      "code": "A110",
+      "name": "Zbiranje ponudb izvajalcev",
+      "type": "task",
+      "parentCode": "A",
+      "durationDays": 35,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "A100",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "own_funds",
+      "sortOrder": 210
+    },
+    {
+      "code": "B",
+      "name": "Komunala, financiranje in priprava gradnje",
+      "type": "summary",
+      "parentCode": null,
+      "durationDays": 0,
+      "dependencies": [],
+      "defaultFundingSourceType": "mixed",
+      "sortOrder": 300
+    },
+    {
+      "code": "B010",
+      "name": "Ureditev financiranja / kredit",
+      "type": "task",
+      "parentCode": "B",
+      "durationDays": 60,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "A080",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "own_funds",
+      "sortOrder": 310
+    },
+    {
+      "code": "B020",
+      "name": "Komunalni prispevek",
+      "type": "task",
+      "parentCode": "B",
+      "durationDays": 30,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "A080",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "own_funds",
+      "sortOrder": 320
+    },
+    {
+      "code": "B030",
+      "name": "Elektro priključek / soglasje / omarica",
+      "type": "task",
+      "parentCode": "B",
+      "durationDays": 45,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "A080",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "own_funds",
+      "sortOrder": 330
+    },
+    {
+      "code": "B040",
+      "name": "Vodovod in kanalizacija / soglasja in priklopi",
+      "type": "task",
+      "parentCode": "B",
+      "durationDays": 45,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "A080",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "own_funds",
+      "sortOrder": 340
+    },
+    {
+      "code": "B050",
+      "name": "Izbor izvajalcev in podpis pogodb",
+      "type": "task",
+      "parentCode": "B",
+      "durationDays": 21,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "A110",
+          "type": "FS",
+          "lagDays": 0
+        },
+        {
+          "predecessorTaskCode": "B010",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "own_funds",
+      "sortOrder": 350
+    },
+    {
+      "code": "B060",
+      "name": "Prijava začetka gradnje",
+      "type": "task",
+      "parentCode": "B",
+      "durationDays": 7,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "A080",
+          "type": "FS",
+          "lagDays": 0
+        },
+        {
+          "predecessorTaskCode": "B050",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "own_funds",
+      "sortOrder": 360
+    },
+    {
+      "code": "B070",
+      "name": "Zakoličba objekta",
+      "type": "task",
+      "parentCode": "B",
+      "durationDays": 2,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "B060",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "own_funds",
+      "sortOrder": 370
+    },
+    {
+      "code": "B080",
+      "name": "Priprava gradbišča",
+      "type": "task",
+      "parentCode": "B",
+      "durationDays": 7,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "B070",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "loan",
+      "sortOrder": 380
+    },
+    {
+      "code": "C",
+      "name": "Zemeljska dela in temelji",
+      "type": "summary",
+      "parentCode": null,
+      "durationDays": 0,
+      "dependencies": [],
+      "defaultFundingSourceType": "loan",
+      "sortOrder": 400
+    },
+    {
+      "code": "C010",
+      "name": "Odriv humusa",
+      "type": "task",
+      "parentCode": "C",
+      "durationDays": 3,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "B080",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "loan",
+      "sortOrder": 410
+    },
+    {
+      "code": "C020",
+      "name": "Izkop gradbene jame / temeljev",
+      "type": "task",
+      "parentCode": "C",
+      "durationDays": 7,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "C010",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "loan",
+      "sortOrder": 420
+    },
+    {
+      "code": "C030",
+      "name": "Nasip, tampon in utrjevanje",
+      "type": "task",
+      "parentCode": "C",
+      "durationDays": 7,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "C020",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "loan",
+      "sortOrder": 430
+    },
+    {
+      "code": "C040",
+      "name": "Podložni beton",
+      "type": "task",
+      "parentCode": "C",
+      "durationDays": 2,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "C030",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "loan",
+      "sortOrder": 440
+    },
+    {
+      "code": "C050",
+      "name": "Armatura, opaž in betoniranje temeljev / temeljne plošče",
+      "type": "task",
+      "parentCode": "C",
+      "durationDays": 14,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "C040",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "loan",
+      "sortOrder": 450
+    },
+    {
+      "code": "C060",
+      "name": "Nega betona",
+      "type": "task",
+      "parentCode": "C",
+      "durationDays": 14,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "C050",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "loan",
+      "sortOrder": 460
+    },
+    {
+      "code": "C070",
+      "name": "Hidroizolacija temeljev in drenaža",
+      "type": "task",
+      "parentCode": "C",
+      "durationDays": 7,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "C060",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "loan",
+      "sortOrder": 470
+    },
+    {
+      "code": "D",
+      "name": "Konstrukcija in zapiranje objekta",
+      "type": "summary",
+      "parentCode": null,
+      "durationDays": 0,
+      "dependencies": [],
+      "defaultFundingSourceType": "loan",
+      "sortOrder": 500
+    },
+    {
+      "code": "D010",
+      "name": "Zidanje pritličja",
+      "type": "task",
+      "parentCode": "D",
+      "durationDays": 21,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "C070",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "loan",
+      "sortOrder": 510
+    },
+    {
+      "code": "D020",
+      "name": "Plošča nad pritličjem",
+      "type": "task",
+      "parentCode": "D",
+      "durationDays": 14,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "D010",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "loan",
+      "sortOrder": 520
+    },
+    {
+      "code": "D030",
+      "name": "Zidanje nadstropja / mansarde",
+      "type": "task",
+      "parentCode": "D",
+      "durationDays": 21,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "D020",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "loan",
+      "sortOrder": 530
+    },
+    {
+      "code": "D040",
+      "name": "AB vezi, preklade, stopnice",
+      "type": "task",
+      "parentCode": "D",
+      "durationDays": 10,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "D030",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "loan",
+      "sortOrder": 540
+    },
+    {
+      "code": "D050",
+      "name": "Ostrešje",
+      "type": "task",
+      "parentCode": "D",
+      "durationDays": 14,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "D040",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "loan",
+      "sortOrder": 550,
+      "optionalKey": "pitched_roof"
+    },
+    {
+      "code": "D060",
+      "name": "Kritina in kleparska dela",
+      "type": "task",
+      "parentCode": "D",
+      "durationDays": 14,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "D050",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "loan",
+      "sortOrder": 560,
+      "optionalKey": "pitched_roof"
+    },
+    {
+      "code": "D065",
+      "name": "Ravna streha - hidroizolacija in atike",
+      "type": "task",
+      "parentCode": "D",
+      "durationDays": 21,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "D040",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "loan",
+      "sortOrder": 565,
+      "optionalKey": "flat_roof"
+    },
+    {
+      "code": "D070",
+      "name": "Okna, zunanja vrata in senčila",
+      "type": "task",
+      "parentCode": "D",
+      "durationDays": 7,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "D060",
+          "type": "FS",
+          "lagDays": 0
+        },
+        {
+          "predecessorTaskCode": "D065",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "loan",
+      "sortOrder": 570
+    },
+    {
+      "code": "E",
+      "name": "Instalacije in notranja dela",
+      "type": "summary",
+      "parentCode": null,
+      "durationDays": 0,
+      "dependencies": [],
+      "defaultFundingSourceType": "loan",
+      "sortOrder": 600
+    },
+    {
+      "code": "E010",
+      "name": "Elektro groba instalacija",
+      "type": "task",
+      "parentCode": "E",
+      "durationDays": 21,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "D070",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "loan",
+      "sortOrder": 610
+    },
+    {
+      "code": "E020",
+      "name": "Vodovod, kanalizacija in strojne instalacije",
+      "type": "task",
+      "parentCode": "E",
+      "durationDays": 21,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "D070",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "loan",
+      "sortOrder": 620
+    },
+    {
+      "code": "E030",
+      "name": "Talno gretje",
+      "type": "task",
+      "parentCode": "E",
+      "durationDays": 10,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "E020",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "loan",
+      "sortOrder": 630,
+      "optionalKey": "floor_heating"
+    },
+    {
+      "code": "E040",
+      "name": "Prezračevanje",
+      "type": "task",
+      "parentCode": "E",
+      "durationDays": 14,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "D070",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "loan",
+      "sortOrder": 640,
+      "optionalKey": "ventilation"
+    },
+    {
+      "code": "E050",
+      "name": "Notranji ometi",
+      "type": "task",
+      "parentCode": "E",
+      "durationDays": 14,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "E010",
+          "type": "FS",
+          "lagDays": 0
+        },
+        {
+          "predecessorTaskCode": "E020",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "loan",
+      "sortOrder": 650
+    },
+    {
+      "code": "E060",
+      "name": "Estrihi",
+      "type": "task",
+      "parentCode": "E",
+      "durationDays": 7,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "E030",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "loan",
+      "sortOrder": 660
+    },
+    {
+      "code": "E070",
+      "name": "Sušenje ometov in estrihov",
+      "type": "task",
+      "parentCode": "E",
+      "durationDays": 42,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "E050",
+          "type": "FS",
+          "lagDays": 0
+        },
+        {
+          "predecessorTaskCode": "E060",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "loan",
+      "sortOrder": 670
+    },
+    {
+      "code": "E080",
+      "name": "Keramika in sanitarna oprema",
+      "type": "task",
+      "parentCode": "E",
+      "durationDays": 28,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "E070",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "mixed",
+      "sortOrder": 680
+    },
+    {
+      "code": "E090",
+      "name": "Talne obloge, beljenje in notranja vrata",
+      "type": "task",
+      "parentCode": "E",
+      "durationDays": 35,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "E070",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "mixed",
+      "sortOrder": 690
+    },
+    {
+      "code": "F",
+      "name": "Fasada, priključki in zunanja ureditev",
+      "type": "summary",
+      "parentCode": null,
+      "durationDays": 0,
+      "dependencies": [],
+      "defaultFundingSourceType": "mixed",
+      "sortOrder": 700
+    },
+    {
+      "code": "F010",
+      "name": "Fasada",
+      "type": "task",
+      "parentCode": "F",
+      "durationDays": 28,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "D070",
+          "type": "FS",
+          "lagDays": 30
+        }
+      ],
+      "defaultFundingSourceType": "loan",
+      "sortOrder": 710
+    },
+    {
+      "code": "F020",
+      "name": "Toplotna črpalka",
+      "type": "task",
+      "parentCode": "F",
+      "durationDays": 10,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "E020",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "mixed",
+      "sortOrder": 720,
+      "optionalKey": "heat_pump"
+    },
+    {
+      "code": "F030",
+      "name": "Sončna elektrarna",
+      "type": "task",
+      "parentCode": "F",
+      "durationDays": 14,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "D060",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "mixed",
+      "sortOrder": 730,
+      "optionalKey": "solar_power"
+    },
+    {
+      "code": "F040",
+      "name": "Dovoz, terasa in zunanja ureditev",
+      "type": "task",
+      "parentCode": "F",
+      "durationDays": 28,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "F010",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "own_funds",
+      "sortOrder": 740
+    },
+    {
+      "code": "F050",
+      "name": "Oporni zidovi",
+      "type": "task",
+      "parentCode": "F",
+      "durationDays": 21,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "C020",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "loan",
+      "sortOrder": 750,
+      "optionalKey": "retaining_walls"
+    },
+    {
+      "code": "G",
+      "name": "Zaključek projekta",
+      "type": "summary",
+      "parentCode": null,
+      "durationDays": 0,
+      "dependencies": [],
+      "defaultFundingSourceType": "own_funds",
+      "sortOrder": 800
+    },
+    {
+      "code": "G010",
+      "name": "Dokazila, PID/DZO in zaključna dokumentacija",
+      "type": "task",
+      "parentCode": "G",
+      "durationDays": 30,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "E090",
+          "type": "FS",
+          "lagDays": 0
+        },
+        {
+          "predecessorTaskCode": "F010",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "own_funds",
+      "sortOrder": 810
+    },
+    {
+      "code": "G020",
+      "name": "Uporabno dovoljenje / zaključek postopka",
+      "type": "task",
+      "parentCode": "G",
+      "durationDays": 45,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "G010",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "own_funds",
+      "sortOrder": 820
+    },
+    {
+      "code": "G030",
+      "name": "Vselitev",
+      "type": "milestone",
+      "parentCode": "G",
+      "durationDays": 0,
+      "dependencies": [
+        {
+          "predecessorTaskCode": "G020",
+          "type": "FS",
+          "lagDays": 0
+        }
+      ],
+      "defaultFundingSourceType": "own_funds",
+      "sortOrder": 830
+    }
+  ]
+}

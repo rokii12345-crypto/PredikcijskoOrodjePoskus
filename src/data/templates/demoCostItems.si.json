@@ -1,0 +1,234 @@
+[
+  {
+    "taskCode": "A020",
+    "name": "Geodetski načrt",
+    "estimatedAmount": 900,
+    "status": "estimate",
+    "defaultFundingSourceType": "own_funds",
+    "paymentRuleCode": "PAY_AT_TASK_END"
+  },
+  {
+    "taskCode": "A030",
+    "name": "Idejna zasnova / IDZ",
+    "estimatedAmount": 3500,
+    "status": "estimate",
+    "defaultFundingSourceType": "own_funds",
+    "paymentRuleCode": "PAY_ADVANCE_30_FINAL_70"
+  },
+  {
+    "taskCode": "A040",
+    "name": "DGD",
+    "estimatedAmount": 8000,
+    "status": "estimate",
+    "defaultFundingSourceType": "own_funds",
+    "paymentRuleCode": "PAY_ADVANCE_30_FINAL_70"
+  },
+  {
+    "taskCode": "A090",
+    "name": "PZI",
+    "estimatedAmount": 12000,
+    "status": "estimate",
+    "defaultFundingSourceType": "own_funds",
+    "paymentRuleCode": "PAY_ADVANCE_30_FINAL_70"
+  },
+  {
+    "taskCode": "A100",
+    "name": "Popis del in projektantski predračun",
+    "estimatedAmount": 1800,
+    "status": "estimate",
+    "defaultFundingSourceType": "own_funds",
+    "paymentRuleCode": "PAY_AT_TASK_END"
+  },
+  {
+    "taskCode": "B020",
+    "name": "Komunalni prispevek",
+    "estimatedAmount": 18000,
+    "status": "estimate",
+    "defaultFundingSourceType": "own_funds",
+    "paymentRuleCode": "PAY_AT_TASK_END"
+  },
+  {
+    "taskCode": "B030",
+    "name": "Elektro priključek",
+    "estimatedAmount": 2500,
+    "status": "estimate",
+    "defaultFundingSourceType": "own_funds",
+    "paymentRuleCode": "PAY_AT_TASK_END"
+  },
+  {
+    "taskCode": "B040",
+    "name": "Vodovod in kanalizacija",
+    "estimatedAmount": 5000,
+    "status": "estimate",
+    "defaultFundingSourceType": "own_funds",
+    "paymentRuleCode": "PAY_AT_TASK_END"
+  },
+  {
+    "taskCode": "B070",
+    "name": "Zakoličba objekta",
+    "estimatedAmount": 700,
+    "status": "estimate",
+    "defaultFundingSourceType": "own_funds",
+    "paymentRuleCode": "PAY_AT_TASK_END"
+  },
+  {
+    "taskCode": "B080",
+    "name": "Priprava gradbišča",
+    "estimatedAmount": 3500,
+    "status": "estimate",
+    "defaultFundingSourceType": "loan",
+    "paymentRuleCode": "PAY_AT_TASK_START"
+  },
+  {
+    "taskCode": "C020",
+    "name": "Zemeljska dela",
+    "estimatedAmount": 12000,
+    "status": "estimate",
+    "defaultFundingSourceType": "loan",
+    "paymentRuleCode": "PAY_ADVANCE_20_PROGRESS_60_FINAL_20"
+  },
+  {
+    "taskCode": "C050",
+    "name": "Temelji / temeljna plošča",
+    "estimatedAmount": 35000,
+    "status": "estimate",
+    "defaultFundingSourceType": "loan",
+    "paymentRuleCode": "PAY_CONSTRUCTION_20_40_30_10"
+  },
+  {
+    "taskCode": "C070",
+    "name": "Hidroizolacija in drenaža",
+    "estimatedAmount": 8000,
+    "status": "estimate",
+    "defaultFundingSourceType": "loan",
+    "paymentRuleCode": "PAY_RETAINAGE_90_10"
+  },
+  {
+    "taskCode": "D010",
+    "name": "Zidanje pritličja",
+    "estimatedAmount": 28000,
+    "status": "estimate",
+    "defaultFundingSourceType": "loan",
+    "paymentRuleCode": "PAY_CONSTRUCTION_20_40_30_10"
+  },
+  {
+    "taskCode": "D020",
+    "name": "Plošča nad pritličjem",
+    "estimatedAmount": 22000,
+    "status": "estimate",
+    "defaultFundingSourceType": "loan",
+    "paymentRuleCode": "PAY_CONSTRUCTION_20_40_30_10"
+  },
+  {
+    "taskCode": "D030",
+    "name": "Zidanje nadstropja / mansarde",
+    "estimatedAmount": 26000,
+    "status": "estimate",
+    "defaultFundingSourceType": "loan",
+    "paymentRuleCode": "PAY_CONSTRUCTION_20_40_30_10"
+  },
+  {
+    "taskCode": "D050",
+    "name": "Ostrešje",
+    "estimatedAmount": 18000,
+    "status": "estimate",
+    "defaultFundingSourceType": "loan",
+    "paymentRuleCode": "PAY_ADVANCE_20_PROGRESS_60_FINAL_20"
+  },
+  {
+    "taskCode": "D060",
+    "name": "Kritina in kleparska dela",
+    "estimatedAmount": 17000,
+    "status": "estimate",
+    "defaultFundingSourceType": "loan",
+    "paymentRuleCode": "PAY_RETAINAGE_90_10"
+  },
+  {
+    "taskCode": "D070",
+    "name": "Okna, zunanja vrata in senčila",
+    "estimatedAmount": 28000,
+    "status": "estimate",
+    "defaultFundingSourceType": "loan",
+    "paymentRuleCode": "PAY_ADVANCE_30_FINAL_70"
+  },
+  {
+    "taskCode": "E010",
+    "name": "Elektro instalacije",
+    "estimatedAmount": 16000,
+    "status": "estimate",
+    "defaultFundingSourceType": "loan",
+    "paymentRuleCode": "PAY_ADVANCE_20_PROGRESS_60_FINAL_20"
+  },
+  {
+    "taskCode": "E020",
+    "name": "Strojne instalacije, vodovod in kanalizacija",
+    "estimatedAmount": 32000,
+    "status": "estimate",
+    "defaultFundingSourceType": "loan",
+    "paymentRuleCode": "PAY_ADVANCE_20_PROGRESS_60_FINAL_20"
+  },
+  {
+    "taskCode": "E050",
+    "name": "Notranji ometi",
+    "estimatedAmount": 12000,
+    "status": "estimate",
+    "defaultFundingSourceType": "loan",
+    "paymentRuleCode": "PAY_RETAINAGE_90_10"
+  },
+  {
+    "taskCode": "E060",
+    "name": "Estrihi",
+    "estimatedAmount": 9000,
+    "status": "estimate",
+    "defaultFundingSourceType": "loan",
+    "paymentRuleCode": "PAY_RETAINAGE_90_10"
+  },
+  {
+    "taskCode": "E080",
+    "name": "Keramika in sanitarna oprema",
+    "estimatedAmount": 22000,
+    "status": "estimate",
+    "defaultFundingSourceType": "mixed",
+    "paymentRuleCode": "PAY_ADVANCE_30_FINAL_70"
+  },
+  {
+    "taskCode": "E090",
+    "name": "Talne obloge, beljenje in notranja vrata",
+    "estimatedAmount": 26000,
+    "status": "estimate",
+    "defaultFundingSourceType": "mixed",
+    "paymentRuleCode": "PAY_ADVANCE_30_FINAL_70"
+  },
+  {
+    "taskCode": "F010",
+    "name": "Fasada",
+    "estimatedAmount": 30000,
+    "status": "estimate",
+    "defaultFundingSourceType": "loan",
+    "paymentRuleCode": "PAY_RETAINAGE_90_10"
+  },
+  {
+    "taskCode": "F020",
+    "name": "Toplotna črpalka",
+    "estimatedAmount": 14000,
+    "status": "estimate",
+    "defaultFundingSourceType": "mixed",
+    "paymentRuleCode": "PAY_ADVANCE_30_FINAL_70"
+  },
+  {
+    "taskCode": "F040",
+    "name": "Dovoz, terasa in zunanja ureditev",
+    "estimatedAmount": 25000,
+    "status": "estimate",
+    "defaultFundingSourceType": "own_funds",
+    "paymentRuleCode": "PAY_ADVANCE_30_FINAL_70"
+  },
+  {
+    "taskCode": "G010",
+    "name": "Zaključna dokumentacija",
+    "estimatedAmount": 2500,
+    "status": "estimate",
+    "defaultFundingSourceType": "own_funds",
+    "paymentRuleCode": "PAY_AT_TASK_END"
+  }
+]

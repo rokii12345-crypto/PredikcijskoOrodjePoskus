@@ -1,0 +1,106 @@
+{
+  "projectTypes": [
+    {
+      "code": "house_new_build",
+      "name": "Novogradnja hiše"
+    }
+  ],
+  "detailLevels": [
+    {
+      "code": "simple",
+      "name": "Enostavni plan",
+      "description": "Manj faz, primeren za osnovni pregled."
+    },
+    {
+      "code": "standard",
+      "name": "Standardni plan",
+      "description": "Priporočeno za večino uporabnikov."
+    },
+    {
+      "code": "detailed",
+      "name": "Podrobni plan",
+      "description": "Več aktivnosti, primeren za napredne uporabnike."
+    }
+  ],
+  "houseFeatures": [
+    {
+      "code": "basement",
+      "name": "Klet",
+      "default": false
+    },
+    {
+      "code": "garage",
+      "name": "Garaža",
+      "default": false
+    },
+    {
+      "code": "carport",
+      "name": "Nadstrešek",
+      "default": false
+    },
+    {
+      "code": "flat_roof",
+      "name": "Ravna streha",
+      "default": false
+    },
+    {
+      "code": "pitched_roof",
+      "name": "Dvokapna ali večkapna streha",
+      "default": true
+    },
+    {
+      "code": "heat_pump",
+      "name": "Toplotna črpalka",
+      "default": true
+    },
+    {
+      "code": "floor_heating",
+      "name": "Talno gretje",
+      "default": true
+    },
+    {
+      "code": "ventilation",
+      "name": "Prezračevanje",
+      "default": false
+    },
+    {
+      "code": "solar_power",
+      "name": "Sončna elektrarna",
+      "default": false
+    },
+    {
+      "code": "small_wastewater_treatment",
+      "name": "Mala čistilna naprava",
+      "default": false
+    },
+    {
+      "code": "sewer_connection",
+      "name": "Priklop na kanalizacijo",
+      "default": true
+    },
+    {
+      "code": "retaining_walls",
+      "name": "Oporni zidovi",
+      "default": false
+    },
+    {
+      "code": "demanding_external_works",
+      "name": "Zahtevnejša zunanja ureditev",
+      "default": false
+    }
+  ],
+  "constructionModes": [
+    {
+      "code": "separate_contractors",
+      "name": "Gradnja po posameznih izvajalcih"
+    },
+    {
+      "code": "main_contractor",
+      "name": "Glavni izvajalec"
+    },
+    {
+      "code": "turnkey",
+      "name": "Na ključ"
+    }
+  ]
+}

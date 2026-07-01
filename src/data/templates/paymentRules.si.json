@@ -1,0 +1,135 @@
+[
+  {
+    "code": "PAY_AT_TASK_END",
+    "name": "Plačilo ob zaključku aktivnosti",
+    "description": "Celoten znesek se plača na končni datum aktivnosti.",
+    "parts": [
+      {
+        "name": "Plačilo ob zaključku",
+        "percent": 100,
+        "dateAnchor": "task_end",
+        "lagDays": 0
+      }
+    ]
+  },
+  {
+    "code": "PAY_AT_TASK_START",
+    "name": "Plačilo ob začetku aktivnosti",
+    "description": "Celoten znesek se plača na začetni datum aktivnosti.",
+    "parts": [
+      {
+        "name": "Plačilo ob začetku",
+        "percent": 100,
+        "dateAnchor": "task_start",
+        "lagDays": 0
+      }
+    ]
+  },
+  {
+    "code": "PAY_ADVANCE_30_FINAL_70",
+    "name": "30 % avans, 70 % ob zaključku",
+    "description": "Tipično za projektiranje, manjša gradbena dela ali naročila.",
+    "parts": [
+      {
+        "name": "Avans",
+        "percent": 30,
+        "dateAnchor": "task_start",
+        "lagDays": 0
+      },
+      {
+        "name": "Končno plačilo",
+        "percent": 70,
+        "dateAnchor": "task_end",
+        "lagDays": 0
+      }
+    ]
+  },
+  {
+    "code": "PAY_ADVANCE_20_PROGRESS_60_FINAL_20",
+    "name": "20 % avans, 60 % med izvedbo, 20 % zaključek",
+    "description": "Primerno za večja gradbena dela.",
+    "parts": [
+      {
+        "name": "Avans",
+        "percent": 20,
+        "dateAnchor": "task_start",
+        "lagDays": 0
+      },
+      {
+        "name": "Glavno plačilo",
+        "percent": 60,
+        "dateAnchor": "task_end",
+        "lagDays": -7
+      },
+      {
+        "name": "Končno plačilo",
+        "percent": 20,
+        "dateAnchor": "task_end",
+        "lagDays": 0
+      }
+    ]
+  },
+  {
+    "code": "PAY_RETAINAGE_90_10",
+    "name": "90 % ob zaključku, 10 % po odpravi napak",
+    "description": "Primerno za dela, kjer investitor zadrži manjši del plačila.",
+    "parts": [
+      {
+        "name": "Glavno plačilo",
+        "percent": 90,
+        "dateAnchor": "task_end",
+        "lagDays": 0
+      },
+      {
+        "name": "Zadržano plačilo",
+        "percent": 10,
+        "dateAnchor": "task_end",
+        "lagDays": 30
+      }
+    ]
+  },
+  {
+    "code": "PAY_CONSTRUCTION_20_40_30_10",
+    "name": "20 % / 40 % / 30 % / 10 %",
+    "description": "Primerno za večje izvajalske pogodbe.",
+    "parts": [
+      {
+        "name": "Avans",
+        "percent": 20,
+        "dateAnchor": "task_start",
+        "lagDays": 0
+      },
+      {
+        "name": "Prva situacija",
+        "percent": 40,
+        "dateAnchor": "task_start",
+        "lagDays": 21
+      },
+      {
+        "name": "Druga situacija",
+        "percent": 30,
+        "dateAnchor": "task_end",
+        "lagDays": -7
+      },
+      {
+        "name": "Končni obračun",
+        "percent": 10,
+        "dateAnchor": "task_end",
+        "lagDays": 14
+      }
+    ]
+  },
+  {
+    "code": "PAY_MONTHLY_DURING_TASK",
+    "name": "Mesečno med trajanjem aktivnosti",
+    "description": "Za MVP lahko ostane kot rezervirano pravilo za kasnejšo implementacijo.",
+    "parts": [
+      {
+        "name": "Mesečno plačilo",
+        "percent": 100,
+        "dateAnchor": "task_end",
+        "lagDays": 0
+      }
+    ]
+  }
+]
