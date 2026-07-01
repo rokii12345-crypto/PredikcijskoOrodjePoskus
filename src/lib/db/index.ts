@@ -143,6 +143,15 @@ function resolveDatabaseUrl(): string {
   return `file:${path.join(dataDir, "gradnjaplan.db")}`;
 }
 
+/**
+ * A fresh, short-lived client per operation. @libsql/client's remote
+ * (Turso) transport keeps server-side session state ("baton") tied to a
+ * client instance; reusing one long-lived client across many unrelated
+ * serverless invocations eventually makes the server reject it with
+ * "SERVER_ERROR: ... invalid baton" (HTTP 400). Creating the client is
+ * cheap (no connection is opened until a query actually runs), so there's
+ * no real downside to not pooling it.
+ */
 function createDbClient(): Client {
   return createClient({
     url: resolveDatabaseUrl(),
@@ -150,29 +159,37 @@ function createDbClient(): Client {
   });
 }
 
-async function initSchema(client: Client): Promise<void> {
-  await withRetry(() => client.execute("PRAGMA foreign_keys = ON;"));
-  await withRetry(() => client.executeMultiple(SCHEMA));
+async function withClient<T>(fn: (client: Client) => Promise<T>): Promise<T> {
+  const client = createDbClient();
+  try {
+    return await withRetry(() => fn(client));
+  } finally {
+    client.close();
+  }
+}
+
+async function ensureSchema(): Promise<void> {
+  await withClient(async (client) => {
+    await client.execute("PRAGMA foreign_keys = ON;");
+    await client.executeMultiple(SCHEMA);
+  });
 }
 
 declare global {
-  var __gradnjaplanDb: Client | undefined;
-  var __gradnjaplanDbReady: Promise<void> | undefined;
+  var __gradnjaplanSchemaReady: Promise<void> | undefined;
 }
 
-export const db = globalThis.__gradnjaplanDb ?? createDbClient();
-export const dbReady = globalThis.__gradnjaplanDbReady ?? initSchema(db);
+const schemaReady = globalThis.__gradnjaplanSchemaReady ?? ensureSchema();
 
 if (process.env.NODE_ENV !== "production") {
-  globalThis.__gradnjaplanDb = db;
-  globalThis.__gradnjaplanDbReady = dbReady;
+  globalThis.__gradnjaplanSchemaReady = schemaReady;
 }
 
 export type QueryArgs = InArgs;
 
 export async function queryAll<T = Record<string, unknown>>(sql: string, args?: QueryArgs): Promise<T[]> {
-  await dbReady;
-  const result = await withRetry(() => db.execute({ sql, args: args ?? [] }));
+  await schemaReady;
+  const result = await withClient((client) => client.execute({ sql, args: args ?? [] }));
   return result.rows as unknown as T[];
 }
 
@@ -182,8 +199,8 @@ export async function queryOne<T = Record<string, unknown>>(sql: string, args?: 
 }
 
 export async function execute(sql: string, args?: QueryArgs) {
-  await dbReady;
-  return withRetry(() => db.execute({ sql, args: args ?? [] }));
+  await schemaReady;
+  return withClient((client) => client.execute({ sql, args: args ?? [] }));
 }
 
 /**
@@ -196,8 +213,8 @@ export async function execute(sql: string, args?: QueryArgs) {
  */
 export async function batch(statements: Array<{ sql: string; args?: QueryArgs }>) {
   if (statements.length === 0) return [];
-  await dbReady;
-  return withRetry(() =>
-    db.batch(statements.map((statement) => ({ sql: statement.sql, args: statement.args ?? [] })))
+  await schemaReady;
+  return withClient((client) =>
+    client.batch(statements.map((statement) => ({ sql: statement.sql, args: statement.args ?? [] })))
   );
 }
